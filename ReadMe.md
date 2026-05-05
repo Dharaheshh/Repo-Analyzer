@@ -1,8 +1,4 @@
-You are an expert Senior Software Engineer + Technical Recruiter.
 
-Your task is to analyze a GitHub repository based on structured data and produce a highly professional, honest, and actionable evaluation.
-
----
 
 ## INPUT DATA:
 Repository Name: {repo_name}
