@@ -1,0 +1,128 @@
+.analysis-page { padding: 40px 0 80px; }
+
+.back-btn { margin-bottom: 24px; padding: 8px 16px; font-size: 0.85rem; }
+
+/* --- Header card --- */
+.analysis-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.header-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+
+.repo-url-link {
+  display: block;
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent-3);
+  text-decoration: none;
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+.repo-url-link:hover { text-decoration: underline; }
+
+.analysis-date { font-size: 0.75rem; color: var(--text-muted); }
+
+.decision-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+.decision-badge.shortlist {
+  background: rgba(16,185,129,0.12);
+  border: 1px solid rgba(16,185,129,0.3);
+  color: var(--success);
+}
+.decision-badge.reject {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: var(--danger);
+}
+
+/* --- Scores --- */
+.scores-card { margin-bottom: 20px; }
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.gauges-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+@media (max-width: 640px) { .gauges-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* --- Tech Stack --- */
+.tech-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* --- Cards grid --- */
+.analysis-page .card { margin-bottom: 20px; }
+
+/* --- Code quality --- */
+.quality-row { display: flex; align-items: flex-start; gap: 20px; }
+
+.quality-score-pill {
+  flex-shrink: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--accent-3);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.quality-score-pill span { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
+
+.body-text { color: var(--text-secondary); font-size: 0.925rem; line-height: 1.7; }
+
+/* --- Risks --- */
+.risks-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+
+/* --- Insight lists --- */
+.insight-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.insight-list li {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  padding-left: 20px;
+  position: relative;
+  line-height: 1.5;
+}
+.insight-list li::before { content: '✦'; position: absolute; left: 0; color: var(--success); font-size: 0.6rem; top: 4px; }
+.insight-list.weakness li::before { color: var(--warning); }
+
+/* --- Recruiter card --- */
+.recruiter-card { margin-bottom: 20px; }
+.shortlist-card { border-color: rgba(16,185,129,0.2); }
+.reject-card    { border-color: rgba(239,68,68,0.15); }
+
+.recruiter-reason {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.recruiter-tags { display: flex; gap: 24px; flex-wrap: wrap; }
+.tag-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 10px; }
+.tag-list  { display: flex; flex-wrap: wrap; gap: 8px; }
