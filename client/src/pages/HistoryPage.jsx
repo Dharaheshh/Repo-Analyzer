@@ -29,11 +29,10 @@ export default function HistoryPage() {
     }
   }, [])
 
-  useEffect(() => { load(1, '') }, [load])
-
-  // Debounced search
+  // Debounced search, with an immediate first load for the empty query.
   useEffect(() => {
-    const t = setTimeout(() => load(1, query), 400)
+    const delay = query ? 400 : 0
+    const t = setTimeout(() => load(1, query), delay)
     return () => clearTimeout(t)
   }, [query, load])
 

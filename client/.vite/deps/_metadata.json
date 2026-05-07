@@ -2,7 +2,41 @@
   "hash": "8e960556",
   "configHash": "2974f421",
   "lockfileHash": "38dcaf12",
-  "browserHash": "dad4a258",
-  "optimized": {},
-  "chunks": {}
+  "browserHash": "d7c82d76",
+  "optimized": {
+    "react-dom/client": {
+      "src": "../../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "9b45e977",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../../node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "5fea21d1",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "1c232844",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "ca2c4286",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "react-CyuUJEhJ": {
+      "file": "react-CyuUJEhJ.js",
+      "isDynamicEntry": false
+    },
+    "react-dom-DdC-LAQ4": {
+      "file": "react-dom-DdC-LAQ4.js",
+      "isDynamicEntry": false
+    }
+  }
 }

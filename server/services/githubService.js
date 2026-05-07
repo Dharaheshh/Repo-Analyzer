@@ -4,6 +4,163 @@ const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN || undefined,
 });
 
+const SIGNAL_FILE_LIMIT = 14;
+const SIGNAL_SNIPPET_LIMIT = 2400;
+const SOURCE_SAMPLE_LIMIT = 6;
+const SOURCE_SNIPPET_LIMIT = 2200;
+
+const SIGNAL_FILE_NAMES = new Set([
+  'package.json',
+  'package-lock.json',
+  'pnpm-lock.yaml',
+  'yarn.lock',
+  'requirements.txt',
+  'pyproject.toml',
+  'pipfile',
+  'poetry.lock',
+  'go.mod',
+  'cargo.toml',
+  'composer.json',
+  'gemfile',
+  'dockerfile',
+  'docker-compose.yml',
+  'tsconfig.json',
+  'vite.config.js',
+  'next.config.js',
+  'eslint.config.js',
+  '.eslintrc',
+  '.env.example',
+  '.npmrc',
+]);
+
+const SOURCE_EXTENSIONS = new Set([
+  '.js',
+  '.jsx',
+  '.ts',
+  '.tsx',
+  '.py',
+  '.go',
+  '.java',
+  '.rb',
+  '.php',
+  '.cs',
+  '.rs',
+]);
+
+function isSignalPath(path) {
+  const lower = path.toLowerCase();
+  const name = lower.split('/').pop();
+
+  return (
+    SIGNAL_FILE_NAMES.has(name) ||
+    lower.startsWith('.github/workflows/') ||
+    lower.includes('/package.json') ||
+    lower.endsWith('.config.js') ||
+    lower.endsWith('.config.ts')
+  );
+}
+
+function isSourcePath(path) {
+  const lower = path.toLowerCase();
+  const extension = lower.includes('.') ? `.${lower.split('.').pop()}` : '';
+
+  return (
+    SOURCE_EXTENSIONS.has(extension) &&
+    !lower.includes('node_modules/') &&
+    !lower.includes('dist/') &&
+    !lower.includes('build/') &&
+    !lower.includes('.min.') &&
+    !lower.includes('vendor/')
+  );
+}
+
+function sourcePriority(path) {
+  const lower = path.toLowerCase();
+  let score = path.split('/').length;
+
+  if (lower.includes('index.') || lower.includes('main.') || lower.includes('app.')) score -= 8;
+  if (lower.includes('server') || lower.includes('api') || lower.includes('route')) score -= 6;
+  if (lower.includes('auth') || lower.includes('security') || lower.includes('middleware')) score -= 5;
+  if (lower.includes('src/') || lower.includes('lib/')) score -= 3;
+  if (lower.includes('test') || lower.includes('spec')) score += 3;
+
+  return score;
+}
+
+function summarizePackageJson(path, content) {
+  try {
+    const parsed = JSON.parse(content);
+    const dependencies = Object.keys(parsed.dependencies || {});
+    const devDependencies = Object.keys(parsed.devDependencies || {});
+
+    return {
+      path,
+      type: 'package_manifest',
+      summary: {
+        scripts: parsed.scripts || {},
+        engines: parsed.engines || {},
+        dependencies: dependencies.slice(0, 40),
+        devDependencies: devDependencies.slice(0, 40),
+      },
+    };
+  } catch {
+    return {
+      path,
+      type: 'package_manifest',
+      snippet: content.slice(0, SIGNAL_SNIPPET_LIMIT),
+    };
+  }
+}
+
+function summarizeSignalFile(path, content) {
+  if (path.toLowerCase().endsWith('package.json')) {
+    return summarizePackageJson(path, content);
+  }
+
+  return {
+    path,
+    type: 'config_or_manifest',
+    snippet: content.slice(0, SIGNAL_SNIPPET_LIMIT),
+  };
+}
+
+async function fetchSignalFiles(owner, repo, treeItems) {
+  const configCandidates = treeItems
+    .filter((item) => item.type === 'blob' && isSignalPath(item.path))
+    .sort((a, b) => a.path.length - b.path.length || a.path.localeCompare(b.path))
+    .slice(0, SIGNAL_FILE_LIMIT);
+
+  const sourceCandidates = treeItems
+    .filter((item) => item.type === 'blob' && isSourcePath(item.path) && !isSignalPath(item.path))
+    .sort((a, b) => sourcePriority(a.path) - sourcePriority(b.path) || a.path.localeCompare(b.path))
+    .slice(0, SOURCE_SAMPLE_LIMIT);
+
+  const candidates = [...configCandidates, ...sourceCandidates];
+
+  const results = await Promise.allSettled(
+    candidates.map(async (item) => {
+      const blob = await octokit.rest.git.getBlob({
+        owner,
+        repo,
+        file_sha: item.sha,
+      });
+      const content = Buffer.from(blob.data.content, 'base64').toString('utf8');
+      if (sourceCandidates.some((candidate) => candidate.path === item.path)) {
+        return {
+          path: item.path,
+          type: 'source_sample',
+          snippet: content.slice(0, SOURCE_SNIPPET_LIMIT),
+        };
+      }
+      return summarizeSignalFile(item.path, content);
+    })
+  );
+
+  return results
+    .filter((result) => result.status === 'fulfilled')
+    .map((result) => result.value);
+}
+
 /**
  * Fetches structured repo data from GitHub API.
  * Returns a normalized object ready to be injected into the Gemini prompt.
@@ -37,16 +194,14 @@ export async function fetchRepoData(owner, repo) {
   }
 
   const repoData = repoRes.value.data;
+  const treeItems = treeRes.status === 'fulfilled' ? treeRes.value.data.tree : [];
 
-  // Languages
   const languages =
     langsRes.status === 'fulfilled' ? langsRes.value.data : {};
 
-  // Recent commits count
   const recentCommits =
     commitsRes.status === 'fulfilled' ? commitsRes.value.data.length : 0;
 
-  // Top contributors
   const contributors =
     contribRes.status === 'fulfilled'
       ? contribRes.value.data
@@ -55,17 +210,18 @@ export async function fetchRepoData(owner, repo) {
           .join(', ')
       : 'insufficient data';
 
-  // Folder structure — top-level files + folders only (keep it short for token efficiency)
   let structure = 'insufficient data';
-  if (treeRes.status === 'fulfilled') {
-    const topLevel = treeRes.value.data.tree
+  if (treeItems.length > 0) {
+    const topLevel = treeItems
       .filter((item) => !item.path.includes('/'))
       .map((item) => (item.type === 'tree' ? `${item.path}/` : item.path))
       .slice(0, 20);
     structure = topLevel.join(', ');
   }
 
-  // Closed issues count from Link header (approximate)
+  const signalFiles =
+    treeItems.length > 0 ? await fetchSignalFiles(owner, repo, treeItems) : [];
+
   const closedIssues =
     closedIssuesRes.status === 'fulfilled'
       ? (() => {
@@ -85,5 +241,13 @@ export async function fetchRepoData(owner, repo) {
     recent_commits: recentCommits,
     contributors,
     structure,
+    signals: {
+      notable_files: treeItems
+        .filter((item) => item.type === 'blob')
+        .map((item) => item.path)
+        .filter(isSignalPath)
+        .slice(0, 30),
+      sampled_files: signalFiles,
+    },
   };
 }

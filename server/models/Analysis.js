@@ -28,6 +28,44 @@ const scoresSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const auditFindingSchema = new mongoose.Schema(
+  {
+    title: { type: String, default: 'insufficient data' },
+    severity: {
+      type: String,
+      enum: ['Low', 'Medium', 'High', 'Critical'],
+      default: 'Low',
+    },
+    category: { type: String, default: 'General' },
+    evidence: { type: String, default: 'insufficient data' },
+    impact: { type: String, default: 'insufficient data' },
+    recommendation: { type: String, default: 'insufficient data' },
+  },
+  { _id: false }
+);
+
+const positiveFindingSchema = new mongoose.Schema(
+  {
+    title: { type: String, default: 'insufficient data' },
+    evidence: { type: String, default: 'insufficient data' },
+    impact: { type: String, default: 'insufficient data' },
+  },
+  { _id: false }
+);
+
+const improvementTaskSchema = new mongoose.Schema(
+  {
+    priority: {
+      type: String,
+      enum: ['P0', 'P1', 'P2', 'P3'],
+      default: 'P2',
+    },
+    task: { type: String, default: 'insufficient data' },
+    why: { type: String, default: 'insufficient data' },
+  },
+  { _id: false }
+);
+
 const analysisSchema = new mongoose.Schema(
   {
     repo_url: { type: String, required: true },
@@ -47,10 +85,18 @@ const analysisSchema = new mongoose.Schema(
     risks: [riskSchema],
     strengths: [{ type: String }],
     weaknesses: [{ type: String }],
+    detailed_findings: [auditFindingSchema],
+    vulnerabilities: [auditFindingSchema],
+    positive_findings: [positiveFindingSchema],
+    improvement_plan: [improvementTaskSchema],
     recruiter_decision: { type: String, required: true },
     recruiter_evaluation: recruiterSchema,
     scores: scoresSchema,
     ai_used: { type: Boolean, default: true },
+    source: { type: String, enum: ['gemini', 'fallback'], default: 'gemini' },
+    reason: { type: String, default: null },
+    provider: { type: String, default: 'gemini' },
+    model: { type: String, default: null },
   },
   { timestamps: true }
 );

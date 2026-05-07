@@ -2,7 +2,7 @@
  * Numeric fallback analysis when Gemini AI is unavailable.
  * Computes basic insights from raw numeric repo data only.
  */
-export function numericFallback(repoData) {
+export function numericFallback(repoData, reason = 'all_models_failed') {
   const { open_issues, closed_issues, recent_commits, stars } = repoData;
 
   // Activity classification
@@ -38,7 +38,7 @@ export function numericFallback(repoData) {
     architecture: 'insufficient data',
     code_quality: {
       score: 0,
-      reason: 'AI unavailable — numeric fallback only',
+      reason: 'AI unavailable - numeric fallback only',
     },
     activity,
     risks: [
@@ -49,12 +49,64 @@ export function numericFallback(repoData) {
     ],
     strengths: [`${stars} GitHub stars`, `${recent_commits} commits in last 30 days`],
     weaknesses: ['Full analysis requires AI service'],
+    detailed_findings: [
+      {
+        title: 'AI review unavailable',
+        severity: 'Medium',
+        category: 'Analysis Coverage',
+        evidence: reason,
+        impact: 'Only numeric metadata could be evaluated.',
+        recommendation: 'Restore Gemini quota or key access and rerun the analysis.',
+      },
+      {
+        title: 'Open issue load',
+        severity: open_issues > 100 ? 'High' : 'Medium',
+        category: 'Maintainability',
+        evidence: `${open_issues || 0} open issues and ${closed_issues || 0} closed issues`,
+        impact: 'A large unresolved backlog can slow maintenance and triage.',
+        recommendation: 'Review stale issues and add labels or automation for triage.',
+      },
+    ],
+    vulnerabilities: [
+      {
+        title: 'Security review unavailable',
+        severity: 'Medium',
+        category: 'Security',
+        evidence: 'AI provider unavailable during analysis',
+        impact: 'Dependency and configuration risks could not be reviewed.',
+        recommendation: 'Rerun with AI available and run a dependency scanner such as npm audit or equivalent.',
+      },
+    ],
+    positive_findings: [
+      {
+        title: 'Repository popularity signal',
+        evidence: `${stars} GitHub stars`,
+        impact: 'Popularity can indicate ecosystem adoption and community review.',
+      },
+      {
+        title: 'Recent activity signal',
+        evidence: `${recent_commits} commits in the last 30 days`,
+        impact: 'Recent commits indicate whether maintainers are still active.',
+      },
+    ],
+    improvement_plan: [
+      {
+        priority: 'P1',
+        task: 'Rerun AI analysis after provider quota is available',
+        why: 'The detailed audit depends on model access.',
+      },
+      {
+        priority: 'P2',
+        task: 'Review open issue backlog',
+        why: 'Issue volume affects maintainability and project health.',
+      },
+    ],
     recruiter_decision: 'insufficient data',
     recruiter_evaluation: {
       skills_detected: ['insufficient data'],
       missing_skills: ['insufficient data'],
       decision: 'Reject',
-      reason: 'AI unavailable — cannot evaluate code quality',
+      reason: 'AI unavailable - cannot evaluate code quality',
     },
     scores: {
       code_quality: 0,
@@ -63,5 +115,7 @@ export function numericFallback(repoData) {
       overall,
     },
     ai_used: false,
+    source: 'fallback',
+    reason,
   };
 }

@@ -26,6 +26,11 @@
 .repo-url-link:hover { text-decoration: underline; }
 
 .analysis-date { font-size: 0.75rem; color: var(--text-muted); }
+.analysis-warning {
+  color: var(--warning);
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
 
 .decision-badge {
   display: flex;
@@ -93,6 +98,124 @@
 
 /* --- Risks --- */
 .risks-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+
+/* --- Detailed audit --- */
+.audit-card { overflow: hidden; }
+.audit-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.audit-finding,
+.positive-finding,
+.plan-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.03);
+}
+
+.audit-finding {
+  padding: 16px;
+  border-left: 3px solid var(--warning);
+}
+.audit-finding.severity-critical,
+.audit-finding.severity-high { border-left-color: var(--danger); }
+.audit-finding.severity-medium { border-left-color: var(--warning); }
+.audit-finding.severity-low { border-left-color: var(--success); }
+
+.finding-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+.finding-topline h3,
+.positive-finding h3,
+.plan-item h3 {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+.finding-severity,
+.plan-priority {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+.finding-category {
+  color: var(--accent-3);
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.finding-details {
+  display: grid;
+  gap: 10px;
+}
+.finding-details div {
+  display: grid;
+  gap: 3px;
+}
+.finding-details dt {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.finding-details dd {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.positive-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.positive-finding {
+  padding: 16px;
+  border-left: 3px solid var(--success);
+}
+.positive-finding p,
+.plan-item p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  margin-top: 8px;
+}
+.positive-finding span {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.plan-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  padding: 16px;
+  align-items: flex-start;
+}
+
+@media (max-width: 720px) {
+  .positive-grid { grid-template-columns: 1fr; }
+  .finding-topline { flex-direction: column; }
+  .plan-item { grid-template-columns: 1fr; }
+}
 
 /* --- Insight lists --- */
 .insight-list {
